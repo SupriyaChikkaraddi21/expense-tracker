@@ -207,6 +207,8 @@ app.post("/google-auth", async (req, res) => {
   try {
     const { credential } = req.body;
 
+    console.log("ENV CLIENT ID:", process.env.GOOGLE_CLIENT_ID); // 👈 ADD HERE
+    console.log("TOKEN RECEIVED:", credential ? "YES" : "NO");   // 👈 ADD THIS ALSO
     if (!credential) {
       return res.status(400).json({
         success: false,
