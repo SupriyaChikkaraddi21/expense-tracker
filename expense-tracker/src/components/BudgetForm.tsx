@@ -9,6 +9,8 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
 
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
@@ -32,7 +34,7 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
       setCategory("");
       setAmount("");
 
-      onAdded();
+      onAdded && onAdded(); // ✅ also safe
     } catch (err) {
       console.error(err);
     }
@@ -52,7 +54,9 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl"
         >
           <option value="">Select Category</option>
-          {categories.map((c: any) => (
+
+          {/* ✅ FIXED SAFELY */}
+          {safeCategories.map((c: any) => (
             <option key={c.id} value={c.name}>
               {c.name}
             </option>

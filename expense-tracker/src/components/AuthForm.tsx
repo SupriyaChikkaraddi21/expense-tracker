@@ -52,7 +52,9 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl"
         >
           <option value="">Select Category</option>
-          {categories.map((c: any) => (
+
+          {/* ✅ FIXED */}
+          {(Array.isArray(categories) ? categories : []).map((c: any) => (
             <option key={c.id} value={c.name}>
               {c.name}
             </option>

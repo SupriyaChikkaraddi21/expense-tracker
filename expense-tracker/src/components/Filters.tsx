@@ -13,6 +13,9 @@ export default function Filters({
   const [catOpen, setCatOpen] = useState(false);
   const [monthOpen, setMonthOpen] = useState(false);
 
+  // ✅ CRITICAL FIX
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   const months = [
     "Jan","Feb","Mar","Apr","May","Jun",
     "Jul","Aug","Sep","Oct","Nov","Dec"
@@ -85,7 +88,8 @@ export default function Filters({
                 All Categories
               </div>
 
-              {categories.map((c: any) => (
+              {/* ✅ SAFE MAP */}
+              {safeCategories.map((c: any) => (
                 <div
                   key={c.id}
                   onClick={() => {
@@ -116,7 +120,9 @@ export default function Filters({
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-left flex justify-between items-center"
         >
           <span>
-            {month === "all" ? "All Months" : months[Number(month)]}
+            {month === "all"
+              ? "All Months"
+              : months[Number(month)] || "All Months"} {/* ✅ SAFE */}
           </span>
 
           <span className={`text-sm transition ${monthOpen ? "rotate-180" : ""}`}>

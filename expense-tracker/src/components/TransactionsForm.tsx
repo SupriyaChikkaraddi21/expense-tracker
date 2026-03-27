@@ -21,6 +21,9 @@ export default function TransactionForm({
   const [newCategory, setNewCategory] = useState("");
   const [open, setOpen] = useState(false);
 
+  // ✅ CRITICAL FIX
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   useEffect(() => {
     if (editing) {
       setText(editing.text);
@@ -77,7 +80,7 @@ export default function TransactionForm({
 
     setCategory(newCategory);
     setNewCategory("");
-    refreshCategories();
+    refreshCategories && refreshCategories(); // ✅ safe
   };
 
   return (
@@ -156,13 +159,13 @@ export default function TransactionForm({
             animate={{ opacity: 1, y: 0 }}
             className="absolute w-full mt-2 bg-gray-900 border border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto z-50"
           >
-            {categories.length === 0 && (
+            {safeCategories.length === 0 && (
               <p className="p-3 text-gray-400 text-sm">
                 No categories
               </p>
             )}
 
-            {categories.map((c: any) => (
+            {safeCategories.map((c: any) => (
               <div
                 key={c.id}
                 onClick={() => {
