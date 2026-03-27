@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 type SummaryData = {
   totalSpent: number;
   topCategory: string;
@@ -18,7 +20,7 @@ export default function SummaryInsightCard({ token }: Props) {
 
     const fetchSummary = async () => {
       try {
-        const res = await fetch("http://localhost:5000/summary", {
+        const res = await fetch(`${BASE_URL}/summary`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -26,13 +28,11 @@ export default function SummaryInsightCard({ token }: Props) {
 
         const resData = await res.json();
 
-        // ✅ FIX: access correct level
         if (res.ok && resData.success && resData.data) {
           setData(resData.data);
         } else {
           setData(null);
         }
-
       } catch (err) {
         console.error("Summary error:", err);
         setData(null);
@@ -47,7 +47,6 @@ export default function SummaryInsightCard({ token }: Props) {
   return (
     <div className="bg-gradient-to-br from-[#0B1220] to-[#020617] border border-white/5 rounded-2xl p-6 shadow-md">
 
-      {/* HEADER */}
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🧠</span>
         <h2 className="text-lg font-semibold text-gray-200">
@@ -55,7 +54,6 @@ export default function SummaryInsightCard({ token }: Props) {
         </h2>
       </div>
 
-      {/* LOADING */}
       {loading && (
         <div className="animate-pulse space-y-3">
           <div className="h-4 bg-white/10 rounded w-3/4"></div>
@@ -63,23 +61,19 @@ export default function SummaryInsightCard({ token }: Props) {
         </div>
       )}
 
-      {/* EMPTY */}
       {!loading && !data && (
         <p className="text-gray-400 text-sm">
           No summary available.
         </p>
       )}
 
-      {/* CONTENT */}
       {!loading && data && (
         <div className="space-y-4">
 
-          {/* TOTAL */}
           <p className="text-2xl font-bold text-indigo-400">
             ₹{data.totalSpent.toLocaleString("en-IN")}
           </p>
 
-          {/* EXTRA INFO */}
           <div className="flex gap-6 text-xs text-gray-400 pt-2 border-t border-white/5">
 
             <div>

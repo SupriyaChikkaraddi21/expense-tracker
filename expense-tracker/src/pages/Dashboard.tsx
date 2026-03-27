@@ -14,6 +14,8 @@ import PredictionCard from "../components/PredictionCard";
 import MonthlyBarChart from "../components/MonthlyBarChart";
 import SummaryInsightCard from "../components/SummaryInsightCard";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const fadeUp = {
   initial: { opacity: 0, y: 15 },
   animate: { opacity: 1, y: 0 },
@@ -54,12 +56,10 @@ function Dashboard({ token, filterType }: any) {
     }
   };
 
-  // =========================
-  // 📥 CSV DOWNLOAD (NEW)
-  // =========================
+  // ✅ FIXED CSV DOWNLOAD
   const downloadCSV = async () => {
     try {
-      const res = await fetch("http://localhost:5000/export-csv", {
+      const res = await fetch(`${BASE_URL}/export-csv`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -89,7 +89,6 @@ function Dashboard({ token, filterType }: any) {
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
-        {/* HEADER */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl md:text-4xl font-semibold text-gray-100">
@@ -100,7 +99,6 @@ function Dashboard({ token, filterType }: any) {
             </p>
           </div>
 
-          {/* ✅ EXPORT BUTTON */}
           <button
             onClick={downloadCSV}
             className="bg-indigo-600 hover:bg-indigo-500 transition px-4 py-2 rounded-xl text-sm font-medium"
@@ -109,7 +107,6 @@ function Dashboard({ token, filterType }: any) {
           </button>
         </div>
 
-        {/* SUMMARY */}
         <motion.div {...fadeUp}>
           <SummaryCards transactions={transactions} />
         </motion.div>
@@ -118,12 +115,10 @@ function Dashboard({ token, filterType }: any) {
           <SummaryInsightCard token={token} />
         </motion.div>
 
-        {/* INSIGHTS */}
         <motion.div {...fadeUp}>
           <InsightsCard token={token} />
         </motion.div>
 
-        {/* GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           <motion.div {...fadeUp}>
@@ -144,10 +139,8 @@ function Dashboard({ token, filterType }: any) {
 
         </div>
 
-        {/* MAIN */}
         <div className="flex flex-col lg:flex-row gap-6">
 
-          {/* LEFT */}
           <div className="w-full lg:w-[320px] flex flex-col gap-6">
 
             <motion.div
@@ -194,7 +187,6 @@ function Dashboard({ token, filterType }: any) {
 
           </div>
 
-          {/* RIGHT */}
           <div className="flex-1 flex flex-col gap-6">
 
             <motion.div

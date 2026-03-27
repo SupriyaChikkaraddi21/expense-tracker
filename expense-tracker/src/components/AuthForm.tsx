@@ -1,195 +1,103 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
 
-type Props = {
-  onAuth: (token: string) => void;
-};
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-function AuthForm({ onAuth }: Props) {
-  const navigate = useNavigate();
+export default function BudgetForm({ token, categories, onAdded }: any) {
+  const [category, setCategory] = useState("");
+  const [amount, setAmount] = useState("");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
 
-  const validate = () => {
-    if (!email || !password || (!isLogin && !username)) {
-      return "All fields are required";
-    }
-    if (!email.includes("@")) return "Invalid email";
-    if (password.length < 5) return "Password too short";
-    return "";
-  };
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
 
-  const handleSubmit = async () => {
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+    if (!category || !amount) return;
 
     try {
-      setLoading(true);
-      setError("");
-
-      const endpoint = isLogin ? "login" : "register";
-
-      const res = await fetch(`http://localhost:5000/${endpoint}`, {
+      await fetch(`${BASE_URL}/budgets`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          email,
-          password,
-          username,
+          category: category.trim().toLowerCase(),
+          amount: Number(amount),
+          month,
+          year,
         }),
       });
 
-      const data = await res.json();
+      setCategory("");
+      setAmount("");
 
-      if (!res.ok || !data.success) {
-        setError(data.message || "Auth failed");
-        return;
-      }
-
-      // ✅ CRITICAL LINE
-      if (data?.data?.token) {
-        console.log("TOKEN RECEIVED:", data.data.token); // debug
-        onAuth(data.data.token);
-        navigate("/dashboard");
-      } else {
-        setError("No token received");
-      }
-
+      onAdded();
     } catch (err) {
       console.error(err);
-      setError("Server error");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617]">
-      <div className="bg-white/5 backdrop-blur-xl p-8 rounded-2xl w-[360px] border border-white/10 shadow-2xl">
+    <div className="bg-[#111827] p-5 rounded-2xl border border-gray-800">
+      <h2 className="text-lg font-semibold mb-4 text-gray-300">
+        Set Budget
+      </h2>
 
-        <h2 className="text-2xl font-semibold text-center mb-6 text-white">
-          {isLogin ? "Welcome Back 👋" : "Create Account 🚀"}
-        </h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
 
-        {error && (
-          <div className="mb-4 text-sm text-red-400 text-center">
-            {error}
-          </div>
-        )}
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl"
+        >
+          <option value="">Select Category</option>
+          {categories.map((c: any) => (
+            <option key={c.id} value={c.name}>
+              {c.name}
+            </option>
+          ))}
+        </select>
 
-        {!isLogin && (
+        <input
+          type="number"
+          placeholder="Budget amount (₹)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl"
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="p-3 bg-gray-800 border border-gray-700 rounded-xl"
+          >
+            {[
+              "Jan","Feb","Mar","Apr","May","Jun",
+              "Jul","Aug","Sep","Oct","Nov","Dec"
+            ].map((m, i) => (
+              <option key={i} value={i + 1}>
+                {m}
+              </option>
+            ))}
+          </select>
+
           <input
-            type="text"
-            placeholder="Username"
-            className="w-full p-3 mb-4 rounded-lg bg-white/10 text-white"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="number"
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="p-3 bg-gray-800 border border-gray-700 rounded-xl"
           />
-        )}
-
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-3 mb-4 rounded-lg bg-white/10 text-white"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-3 mb-4 rounded-lg bg-white/10 text-white"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        </div>
 
         <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 py-3 rounded-lg"
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 py-2 rounded-xl font-semibold"
         >
-          {loading ? "Processing..." : isLogin ? "Login" : "Register"}
+          Save Budget
         </button>
-
-        <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-[1px] bg-white/10" />
-          <span className="text-xs text-gray-400">OR</span>
-          <div className="flex-1 h-[1px] bg-white/10" />
-        </div>
-
-        {/* GOOGLE LOGIN */}
-        <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={async (credentialResponse) => {
-              try {
-                if (!credentialResponse.credential) {
-                  setError("No credential");
-                  return;
-                }
-
-                setLoading(true);
-
-                const res = await fetch("http://localhost:5000/google-auth", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    credential: credentialResponse.credential,
-                  }),
-                });
-
-                const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                  setError(data.message || "Google failed");
-                  return;
-                }
-
-                if (data?.data?.token) {
-                  console.log("GOOGLE TOKEN:", data.data.token); // debug
-                  onAuth(data.data.token);
-                  navigate("/dashboard");
-                } else {
-                  setError("No token from Google");
-                }
-
-              } catch (err) {
-                console.error(err);
-                setError("Google auth error");
-              } finally {
-                setLoading(false);
-              }
-            }}
-            onError={() => setError("Google Login Failed")}
-          />
-        </div>
-
-        <p
-          onClick={() => {
-            setIsLogin(!isLogin);
-            setError("");
-          }}
-          className="text-center text-gray-400 mt-5 cursor-pointer"
-        >
-          {isLogin
-            ? "Don't have an account? Register"
-            : "Already have an account? Login"}
-        </p>
-      </div>
+      </form>
     </div>
   );
 }
-
-export default AuthForm;

@@ -8,6 +8,8 @@ import {
   CartesianGrid,
 } from "recharts";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 type Props = {
   token: string;
 };
@@ -26,21 +28,19 @@ export default function MonthlyBarChart({ token }: Props) {
 
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/monthly-comparison", {
+        const res = await fetch(`${BASE_URL}/monthly-comparison`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const resData = await res.json();
 
-        // ✅ FIX: normalize response
         if (res.ok && resData.success && Array.isArray(resData.data)) {
           setData(resData.data);
         } else if (Array.isArray(resData)) {
-          setData(resData); // fallback
+          setData(resData);
         } else {
           setData([]);
         }
-
       } catch (err) {
         console.error("Chart fetch error:", err);
         setData([]);
@@ -55,7 +55,6 @@ export default function MonthlyBarChart({ token }: Props) {
   return (
     <div className="bg-gradient-to-br from-[#0B1220] to-[#0F172A] p-6 rounded-2xl border border-gray-800 shadow-xl">
 
-      {/* HEADER */}
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-lg font-semibold text-gray-200">
           Monthly Spending
@@ -65,21 +64,18 @@ export default function MonthlyBarChart({ token }: Props) {
         </span>
       </div>
 
-      {/* LOADING */}
       {loading && (
         <div className="h-[280px] flex items-center justify-center text-gray-500">
           Loading chart...
         </div>
       )}
 
-      {/* EMPTY */}
       {!loading && data.length === 0 && (
         <div className="h-[280px] flex items-center justify-center text-gray-400 text-sm">
           No data available
         </div>
       )}
 
-      {/* CHART */}
       {!loading && data.length > 0 && (
         <div className="w-full h-[280px]">
           <ResponsiveContainer width="100%" height="100%">

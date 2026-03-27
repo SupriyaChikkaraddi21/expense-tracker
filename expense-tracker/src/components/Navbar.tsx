@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 type Props = {
   onLogout: () => void;
 };
@@ -22,7 +24,7 @@ function Navbar({ onLogout }: Props) {
 
     if (!token) return;
 
-    fetch("http://localhost:5000/me", {
+    fetch(`${BASE_URL}/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

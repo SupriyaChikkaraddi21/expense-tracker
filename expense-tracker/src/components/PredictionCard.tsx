@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 export default function PredictionCard({ token }: any) {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/budget-predictions", {
+    if (!token) return;
+
+    fetch(`${BASE_URL}/budget-predictions`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then(setData)
       .catch(console.error);
-  }, []);
+  }, [token]);
 
   return (
     <div className="bg-[#111827] p-6 rounded-2xl border border-gray-800">

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 type Insight = {
   type: "danger" | "warning" | "info" | "highlight";
   message: string;
@@ -18,13 +20,12 @@ export default function InsightsCard({ token }: Props) {
 
     const fetchInsights = async () => {
       try {
-        const res = await fetch("http://localhost:5000/insights", {
+        const res = await fetch(`${BASE_URL}/insights`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const resData = await res.json();
 
-        // ✅ FIX: handle new backend structure
         if (res.ok && resData.success && Array.isArray(resData.data)) {
           setData(resData.data);
         } else {
@@ -58,7 +59,6 @@ export default function InsightsCard({ token }: Props) {
   return (
     <div className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 shadow-sm">
 
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-200">
           Smart Insights
@@ -68,7 +68,6 @@ export default function InsightsCard({ token }: Props) {
         </span>
       </div>
 
-      {/* LOADING */}
       {loading && (
         <div className="animate-pulse space-y-3">
           <div className="h-4 bg-white/10 rounded w-1/2"></div>
@@ -77,14 +76,12 @@ export default function InsightsCard({ token }: Props) {
         </div>
       )}
 
-      {/* EMPTY */}
       {!loading && data.length === 0 && (
         <p className="text-gray-500 text-sm">
           No insights yet. Add transactions to unlock analysis.
         </p>
       )}
 
-      {/* INSIGHTS */}
       {!loading && data.length > 0 && (
         <div className="space-y-3">
           {data.map((item, i) => (

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 type Trend = {
   category: string;
   current: number;
@@ -21,22 +23,19 @@ export default function TrendsCard({ token }: Props) {
 
     const fetchTrends = async () => {
       try {
-        const res = await fetch("http://localhost:5000/spending-trends", {
+        const res = await fetch(`${BASE_URL}/spending-trends`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const resData = await res.json();
 
-        // ✅ SAFE parsing
         if (res.ok && resData.success && Array.isArray(resData.data)) {
           setData(resData.data);
         } else if (Array.isArray(resData)) {
-          // fallback (old format)
           setData(resData);
         } else {
           setData([]);
         }
-
       } catch (err) {
         console.error("Trends fetch error:", err);
         setData([]);
@@ -55,7 +54,6 @@ export default function TrendsCard({ token }: Props) {
         Monthly Trends
       </h2>
 
-      {/* LOADING */}
       {loading && (
         <div className="space-y-3 animate-pulse">
           <div className="h-4 bg-gray-700 rounded w-2/3"></div>
@@ -63,12 +61,10 @@ export default function TrendsCard({ token }: Props) {
         </div>
       )}
 
-      {/* EMPTY */}
       {!loading && data.length === 0 && (
         <p className="text-gray-400">No trend data</p>
       )}
 
-      {/* DATA */}
       {!loading && data.length > 0 && (
         <div className="space-y-3">
           {data.map((item, i) => {
@@ -79,7 +75,6 @@ export default function TrendsCard({ token }: Props) {
                 key={i}
                 className="flex justify-between items-center p-3 bg-[#1F2937] rounded-lg"
               >
-                {/* LEFT */}
                 <div>
                   <p className="text-sm capitalize">
                     {item.category}
@@ -89,7 +84,6 @@ export default function TrendsCard({ token }: Props) {
                   </p>
                 </div>
 
-                {/* RIGHT */}
                 <div className="text-sm font-semibold">
                   {item.trend === "new" && (
                     <span className="text-yellow-400">

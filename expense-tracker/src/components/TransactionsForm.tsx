@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { detectCategory } from "../utils/autoCategory";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 export default function TransactionForm({
   categories,
   onSubmit,
@@ -19,7 +21,6 @@ export default function TransactionForm({
   const [newCategory, setNewCategory] = useState("");
   const [open, setOpen] = useState(false);
 
-  // ✅ PREFILL WHEN EDITING
   useEffect(() => {
     if (editing) {
       setText(editing.text);
@@ -29,7 +30,6 @@ export default function TransactionForm({
     }
   }, [editing]);
 
-  // ✅ CLOSE DROPDOWN ON OUTSIDE CLICK
   useEffect(() => {
     const handleClickOutside = (e: any) => {
       if (!e.target.closest(".category-dropdown")) {
@@ -66,7 +66,7 @@ export default function TransactionForm({
   const handleAddCategory = async () => {
     if (!newCategory) return;
 
-    await fetch("http://localhost:5000/categories", {
+    await fetch(`${BASE_URL}/categories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -87,7 +87,6 @@ export default function TransactionForm({
       className="space-y-5"
     >
 
-      {/* TYPE TOGGLE */}
       <div className="flex bg-gray-800 p-1 rounded-xl">
         <button
           onClick={() => setType("expense")}
@@ -112,7 +111,6 @@ export default function TransactionForm({
         </button>
       </div>
 
-      {/* DESCRIPTION */}
       <input
         placeholder="What did you spend on?"
         value={text}
@@ -126,7 +124,6 @@ export default function TransactionForm({
         className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
 
-      {/* AMOUNT */}
       <input
         type="number"
         placeholder="Amount (₹)"
@@ -135,7 +132,6 @@ export default function TransactionForm({
         className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
 
-      {/* CATEGORY */}
       <div className="relative category-dropdown">
         <label className="text-sm text-gray-400 mb-1 block">
           Category
@@ -182,7 +178,6 @@ export default function TransactionForm({
         )}
       </div>
 
-      {/* ADD CATEGORY */}
       <div className="flex gap-2">
         <input
           placeholder="New category"
@@ -199,7 +194,6 @@ export default function TransactionForm({
         </button>
       </div>
 
-      {/* SUBMIT */}
       <button
         onClick={handleSubmit}
         className="w-full bg-indigo-500 hover:bg-indigo-600 p-3 rounded-xl font-semibold transition"
@@ -211,7 +205,6 @@ export default function TransactionForm({
           : "Add Transaction"}
       </button>
 
-      {/* CANCEL EDIT */}
       {editing && (
         <button
           onClick={() => {

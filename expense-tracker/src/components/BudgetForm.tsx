@@ -1,10 +1,11 @@
 import { useState } from "react";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 export default function BudgetForm({ token, categories, onAdded }: any) {
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
 
-  // ✅ NEW STATES
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
 
@@ -14,14 +15,14 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
     if (!category || !amount) return;
 
     try {
-      await fetch("http://localhost:5000/budgets", {
+      await fetch(`${BASE_URL}/budgets`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          category: category.trim().toLowerCase(), // ✅ normalize
+          category: category.trim().toLowerCase(),
           amount: Number(amount),
           month,
           year,
@@ -45,7 +46,6 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* CATEGORY */}
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -59,7 +59,6 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
           ))}
         </select>
 
-        {/* AMOUNT */}
         <input
           type="number"
           placeholder="Budget amount (₹)"
@@ -68,9 +67,7 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
           className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl"
         />
 
-        {/* 🔥 MONTH + YEAR */}
         <div className="grid grid-cols-2 gap-3">
-
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
@@ -92,10 +89,8 @@ export default function BudgetForm({ token, categories, onAdded }: any) {
             onChange={(e) => setYear(Number(e.target.value))}
             className="p-3 bg-gray-800 border border-gray-700 rounded-xl"
           />
-
         </div>
 
-        {/* BUTTON */}
         <button
           type="submit"
           className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 py-2 rounded-xl font-semibold"
