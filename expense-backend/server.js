@@ -9,9 +9,23 @@ const { OAuth2Client } = require("google-auth-library");
 
 // ✅ CREATE APP
 const app = express();
+const rateLimit = require("express-rate-limit");
+
+app.use(
+rateLimit({
+windowMs: 15 * 60 * 1000,
+max: 100,
+})
+); 
 
 // ✅ MIDDLEWARE
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // ✅ GOOGLE CLIENT
@@ -1292,6 +1306,13 @@ app.get("/export-csv", auth, async (req, res) => {
       message: "CSV export failed",
     });
   }
+});
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
 });
 
 // =======================
