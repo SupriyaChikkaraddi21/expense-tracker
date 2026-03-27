@@ -15,7 +15,7 @@ type Transaction = {
 };
 
 function Profile({ token }: Props) {
-  const BASE_URL = "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
