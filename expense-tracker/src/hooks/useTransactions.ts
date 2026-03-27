@@ -27,53 +27,50 @@ export const useTransactions = (token: string, filterType: string) => {
   // LOAD TRANSACTIONS
   // ------------------------
   const loadTransactions = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/transactions`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  try {
+    const res = await fetch(`${BASE_URL}/transactions`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const resData = await res.json();
+    const resData = await res.json();
 
-      if (res.ok && resData.success && Array.isArray(resData.data)) {
-        setTransactions(resData.data);
-      } else {
-        setTransactions([]);
-      }
-    } catch (err) {
-      console.error("Transactions fetch error:", err);
+    if (Array.isArray(resData)) {
+      setTransactions(resData);
+    } else if (res.ok && resData.data && Array.isArray(resData.data)) {
+      setTransactions(resData.data);
+    } else {
       setTransactions([]);
     }
-  };
 
+  } catch (err) {
+    console.error("Transactions fetch error:", err);
+    setTransactions([]);
+  }
+};
   // ------------------------
   // LOAD CATEGORIES
   // ------------------------
   const loadCategories = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/categories`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  try {
+    const res = await fetch(`${BASE_URL}/categories`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const resData = await res.json();
+    const resData = await res.json();
 
-      if (res.ok && resData.success && Array.isArray(resData.data)) {
-        setCategories(resData.data);
-      } else {
-        setCategories([]);
-      }
-    } catch (err) {
-      console.error("Categories fetch error:", err);
+    if (Array.isArray(resData)) {
+      setCategories(resData);
+    } else if (res.ok && resData.data && Array.isArray(resData.data)) {
+      setCategories(resData.data);
+    } else {
       setCategories([]);
     }
-  };
 
-  useEffect(() => {
-    if (token) {
-      loadTransactions();
-      loadCategories();
-    }
-  }, [token]);
-
+  } catch (err) {
+    console.error("Categories fetch error:", err);
+    setCategories([]);
+  }
+};
   // ------------------------
   // ADD TRANSACTION
   // ------------------------
