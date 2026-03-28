@@ -227,8 +227,9 @@ app.post("/google-auth", async (req, res) => {
   try {
     const { credential } = req.body;
 
-    console.log("ENV CLIENT ID:", process.env.GOOGLE_CLIENT_ID); // 👈 ADD HERE
-    console.log("TOKEN RECEIVED:", credential ? "YES" : "NO");   // 👈 ADD THIS ALSO
+    console.log("ENV CLIENT ID:", process.env.GOOGLE_CLIENT_ID);
+    console.log("TOKEN RECEIVED:", credential ? "YES" : "NO");
+
     if (!credential) {
       return res.status(400).json({
         success: false,
@@ -236,57 +237,84 @@ app.post("/google-auth", async (req, res) => {
       });
     }
 
+    // ✅ VERIFY TOKEN
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience:process.env.GOOGLE_CLIENT_ID,
-        
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
 
+    if (!payload || !payload.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Google token",
+      });
+    }
+
     let email = payload.email.toLowerCase().trim();
 
-    let username = payload.name
+    let username = (payload.name || "user")
       .toLowerCase()
       .replace(/\s+/g, "");
 
-    const existingUsername = await pool.query(
-      "SELECT 1 FROM users WHERE username = $1",
-      [username]
-    );
+    // ✅ Ensure username uniqueness
+    let baseUsername = username;
+    let counter = 0;
 
-    if (existingUsername.rows.length > 0) {
-      username = username + Math.floor(Math.random() * 1000);
+    while (true) {
+      const check = await pool.query(
+        "SELECT 1 FROM users WHERE username = $1",
+        [username]
+      );
+
+      if (check.rows.length === 0) break;
+
+      counter++;
+      username = baseUsername + counter;
     }
 
+    // ✅ Check if user exists
     let user = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
+    // ✅ Create user if not exists
     if (user.rows.length === 0) {
-      user = await pool.query(
-        "INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING *",
-        [email, null, username]
-      );
+      try {
+        user = await pool.query(
+          `INSERT INTO users (email, password, username)
+           VALUES ($1, $2, $3)
+           RETURNING *`,
+          [email, null, username]
+        );
+      } catch (dbErr) {
+        console.error("DB INSERT ERROR:", dbErr);
+        return res.status(500).json({
+          success: false,
+          message: "Database error while creating user",
+        });
+      }
     }
 
     const token = generateToken(user.rows[0].id);
 
-    res.json({
+    return res.json({
       success: true,
       data: { token },
     });
 
   } catch (err) {
-    console.error("GOOGLE AUTH ERROR:", err);
-    res.status(500).json({
+    console.error("🔥 GOOGLE AUTH ERROR:", err);
+
+    return res.status(500).json({
       success: false,
       message: "Google auth failed",
+      error: err.message,
     });
   }
 });
-
 // =======================
 // 👤 GET CURRENT USER
 // =======================
