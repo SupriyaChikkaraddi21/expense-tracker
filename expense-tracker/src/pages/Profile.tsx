@@ -11,7 +11,11 @@ type User = {
 };
 
 type Transaction = {
+  id?: number;
+  text?: string;
   amount: number;
+  category?: string;
+  created_at?: string;
 };
 
 function Profile({ token }: Props) {
@@ -19,9 +23,22 @@ function Profile({ token }: Props) {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   const [total, setTotal] = useState(0);
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
+  const [balance, setBalance] = useState(0);
+
+  const [topCategory, setTopCategory] = useState("N/A");
+  const [avgSpend, setAvgSpend] = useState(0);
+  const [lastActivity, setLastActivity] = useState("No activity");
+
+  const [activeFilter, setActiveFilter] = 
+  useState<"income" | "expense" | null>(null);
+
+  const [editingName, setEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,42 +64,84 @@ function Profile({ token }: Props) {
       const profileData = await profileRes.json();
       const txnData = await txnRes.json();
 
+      // USER
       if (profileRes.ok && profileData.success) {
         setUser(profileData.data);
-      } else {
-        throw new Error("Failed to load profile");
+        setTempName(profileData.data.username);
       }
 
+      // TRANSACTIONS
       if (txnRes.ok && txnData.success && Array.isArray(txnData.data)) {
-        const transactions = txnData.data;
+        const txns: Transaction[] = txnData.data;
+        setTransactions(txns);
 
-        const inc = transactions
-          .filter((t: Transaction) => t.amount > 0)
-          .reduce((a: number, b: Transaction) => a + b.amount, 0);
+        // INCOME
+        const inc = txns
+          .filter((t) => t.amount > 0)
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
-        const exp = transactions
-          .filter((t: Transaction) => t.amount < 0)
-          .reduce((a: number, b: Transaction) => a + b.amount, 0);
+        // EXPENSE
+        const exp = txns
+          .filter((t) => t.amount < 0)
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+
+        const absExp = Math.abs(exp);
 
         setIncome(inc);
-        setExpense(Math.abs(exp));
-        setTotal(transactions.length);
-      } else {
-        setIncome(0);
-        setExpense(0);
-        setTotal(0);
-      }
+        setExpense(absExp);
+        setTotal(txns.length);
+        setBalance(inc - absExp);
 
+        // TOP CATEGORY
+        const map: Record<string, number> = {};
+        txns.forEach((t) => {
+          if (t.amount < 0 && t.category) {
+            map[t.category] =
+              (map[t.category] || 0) + Math.abs(t.amount);
+          }
+        });
+
+        const top = Object.entries(map).sort(
+          (a, b) => b[1] - a[1]
+        )[0];
+
+        if (top) {
+          setTopCategory(`${top[0]} (₹${top[1]})`);
+        } else {
+          setTopCategory("N/A");
+        }
+
+        // AVG SPEND
+        const days = new Date().getDate();
+        setAvgSpend(days ? Math.round(absExp / days) : 0);
+
+        // LAST ACTIVITY (CLEAN + SAFE)
+        const latestTxn = txns
+          .filter((t) => t.created_at)
+          .sort(
+            (a, b) =>
+              new Date(b.created_at!).getTime() -
+              new Date(a.created_at!).getTime()
+          )[0];
+
+        if (latestTxn && latestTxn.created_at) {
+          setLastActivity(
+            new Date(latestTxn.created_at).toLocaleDateString("en-IN")
+          );
+        } else {
+          setLastActivity("No activity");
+        }
+      }
     } catch (err) {
       console.error(err);
-      setError("Failed to load profile. Try again.");
+      setError("Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ FIXED NAVIGATION
   const goToDashboard = (type?: "income" | "expense") => {
+    setActiveFilter(type || null);
     if (type) {
       navigate(`/dashboard?type=${type}`);
     } else {
@@ -90,88 +149,140 @@ function Profile({ token }: Props) {
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-4xl mx-auto p-6 space-y-4 animate-pulse">
+        <div className="h-6 bg-gray-700 w-40 rounded"></div>
+        <div className="h-20 bg-gray-800 rounded"></div>
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-white bg-gray-950">
-        <p className="mb-4">{error}</p>
-        <button
-          onClick={fetchAll}
-          className="px-4 py-2 bg-indigo-500 rounded-lg"
-        >
-          Retry
-        </button>
-      </div>
-    );
+    return <p className="text-white">{error}</p>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-[#0B1220] p-6 rounded-2xl border border-gray-800 shadow-lg">
+    <div className="max-w-5xl mx-auto p-6 text-white">
 
-        <h2 className="text-2xl font-semibold mb-6 text-white">
-          Profile
-        </h2>
-
-        {/* USER INFO */}
-        <div className="mb-6 space-y-4">
-          <div>
-            <p className="text-gray-400 text-sm">Username</p>
-            <p className="text-lg text-white font-medium">
-              {user?.username}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-400 text-sm">Email</p>
-            <p className="text-lg text-white">
-              {user?.email}
-            </p>
-          </div>
-        </div>
-
-        {/* STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-          <div
-            onClick={() => goToDashboard()}
-            className="bg-gray-800/70 p-5 rounded-xl cursor-pointer hover:bg-gray-700 transition"
-          >
-            <p className="text-gray-400 text-sm">Total Transactions</p>
-            <h3 className="text-xl font-semibold text-white">
-              {total}
-            </h3>
-          </div>
-
-          <div
-            onClick={() => goToDashboard("income")}
-            className="bg-gray-800/70 p-5 rounded-xl cursor-pointer hover:bg-gray-700 transition"
-          >
-            <p className="text-gray-400 text-sm">Total Income</p>
-            <h3 className="text-xl font-semibold text-green-400">
-              ₹{income.toLocaleString("en-IN")}
-            </h3>
-          </div>
-
-          <div
-            onClick={() => goToDashboard("expense")}
-            className="bg-gray-800/70 p-5 rounded-xl cursor-pointer hover:bg-gray-700 transition"
-          >
-            <p className="text-gray-400 text-sm">Total Expenses</p>
-            <h3 className="text-xl font-semibold text-red-400">
-              ₹{expense.toLocaleString("en-IN")}
-            </h3>
-          </div>
-
-        </div>
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-semibold">Profile</h2>
+        <button
+          onClick={logout}
+          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-400"
+        >
+          Logout
+        </button>
       </div>
+
+      {/* USER */}
+      <div className="bg-[#0B1220] p-6 rounded-2xl mb-6 border border-white/5">
+        <p className="text-gray-400 text-sm">Username</p>
+
+        {editingName ? (
+          <div className="flex gap-2 mt-2">
+            <input
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+              className="bg-gray-800 px-3 py-2 rounded"
+            />
+            <button
+              onClick={() => {
+                setUser({ ...user!, username: tempName });
+                setEditingName(false);
+              }}
+              className="bg-green-500 px-3 rounded"
+            >
+              Save
+            </button>
+          </div>
+        ) : (
+          <p
+            onClick={() => setEditingName(true)}
+            className="text-lg cursor-pointer"
+          >
+            {user?.username}
+          </p>
+        )}
+
+        <p className="text-gray-400 mt-4 text-sm">Email</p>
+        <p>{user?.email}</p>
+      </div>
+
+      {/* STATS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+        <StatCard
+          title="Transactions"
+          icon="📊"
+          value={total}
+          onClick={() => goToDashboard()}
+        />
+
+        <StatCard
+          title="Income"
+          icon="💰"
+          value={`₹${income.toLocaleString("en-IN")}`}
+          onClick={() => goToDashboard("income")}
+        />
+
+        <StatCard
+          title="Expenses"
+          icon="📉"
+          value={`₹${expense.toLocaleString("en-IN")}`}
+          onClick={() => goToDashboard("expense")}
+        />
+
+        <div className={`p-5 rounded-xl ${balance >= 0 ? "bg-green-700" : "bg-red-700"}`}>
+          <p className="text-xs opacity-70">Balance</p>
+          <h3 className="text-lg font-semibold">
+            🧮 ₹{balance.toLocaleString("en-IN")}
+          </h3>
+        </div>
+
+      </div>
+
+      {/* INSIGHTS */}
+      <div className="grid md:grid-cols-3 gap-4 mt-6">
+
+        <InfoCard title="Top Category" icon="🏆" value={topCategory} />
+
+        <InfoCard title="Avg Spend / Day" icon="📅" value={`₹${avgSpend}`} />
+
+        <InfoCard title="Last Activity" icon="⏱" value={lastActivity} />
+
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ title, icon, value, onClick }: any) {
+  return (
+    <div
+      onClick={onClick}
+      className="bg-gray-800 p-5 rounded-xl hover:scale-105 transition cursor-pointer"
+    >
+      <p className="text-xs text-gray-400">{title}</p>
+      <h3 className="text-lg font-semibold">
+        {icon} {value}
+      </h3>
+    </div>
+  );
+}
+
+function InfoCard({ title, icon, value }: any) {
+  return (
+    <div className="bg-gray-800 p-5 rounded-xl">
+      <p className="text-xs text-gray-400">{title}</p>
+      <h3 className="text-lg font-semibold">
+        {icon} {value}
+      </h3>
     </div>
   );
 }
