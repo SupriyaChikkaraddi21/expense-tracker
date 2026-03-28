@@ -46,15 +46,17 @@ export default function ChartSection({ expenseData, topCategory }: Props) {
         </span>
       </div>
 
-      {/* CHART + CENTER INFO */}
-      <div className="relative w-full h-[280px]">
-        <ResponsiveContainer width="100%" height="100%">
+      {/* CHART */}
+      <div className="relative w-full min-h-[320px]">
+
+        {/* ✅ FIX: give fixed height */}
+        <ResponsiveContainer width="100%" height={320}>
           <PieChart>
             <Pie
               data={expenseData}
               dataKey="value"
-              innerRadius={75}
-              outerRadius={110}
+              innerRadius={80}
+              outerRadius={120}
               paddingAngle={3}
             >
               {expenseData.map((_, i) => (

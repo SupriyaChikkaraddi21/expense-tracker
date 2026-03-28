@@ -20,9 +20,10 @@ max: 100,
 
 // ✅ MIDDLEWARE
 app.set("trust proxy", 1);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin:"http://localhost:5173",
     credentials: true,
   })
 );
@@ -31,7 +32,7 @@ app.use(express.json());
 
 // ✅ GOOGLE CLIENT
 const client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT__ID
+  process.env.GOOGLE_CLIENT_ID
 );
 
 // =======================

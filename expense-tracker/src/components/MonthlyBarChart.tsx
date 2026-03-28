@@ -65,22 +65,24 @@ export default function MonthlyBarChart({ token }: Props) {
       </div>
 
       {loading && (
-        <div className="h-[280px] flex items-center justify-center text-gray-500">
+        <div className="h-[300px] flex items-center justify-center text-gray-500">
           Loading chart...
         </div>
       )}
 
       {!loading && data.length === 0 && (
-        <div className="h-[280px] flex items-center justify-center text-gray-400 text-sm">
+        <div className="h-[300px] flex items-center justify-center text-gray-400 text-sm">
           No data available
         </div>
       )}
 
       {!loading && data.length > 0 && (
-        <div className="w-full h-[280px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} barCategoryGap={30}>
+        <div className="w-full min-h-[300px]">
 
+          {/* ✅ FIXED HEIGHT HERE */}
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data} barCategoryGap={30}>
+              
               <CartesianGrid
                 stroke="#1e293b"
                 strokeDasharray="3 3"
@@ -97,9 +99,10 @@ export default function MonthlyBarChart({ token }: Props) {
 
               <Tooltip
                 cursor={{ fill: "rgba(99,102,241,0.08)" }}
-                formatter={(value: any) =>
-                  [`₹${Number(value).toLocaleString("en-IN")}`, "Spending"]
-                }
+                formatter={(value: any) => [
+                  `₹${Number(value).toLocaleString("en-IN")}`,
+                  "Spending",
+                ]}
                 labelStyle={{ color: "#94A3B8" }}
                 contentStyle={{
                   backgroundColor: "#020617",
@@ -116,6 +119,7 @@ export default function MonthlyBarChart({ token }: Props) {
                 fill="#6366F1"
                 barSize={36}
               />
+
             </BarChart>
           </ResponsiveContainer>
         </div>

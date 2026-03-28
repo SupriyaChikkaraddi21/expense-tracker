@@ -71,6 +71,12 @@ export const useTransactions = (token: string, filterType: string) => {
     setCategories([]);
   }
 };
+useEffect(() => {
+  if (token) {
+    loadTransactions();
+    loadCategories();
+  }
+}, [token]);
   // ------------------------
   // ADD TRANSACTION
   // ------------------------
