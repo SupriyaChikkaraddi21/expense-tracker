@@ -152,6 +152,7 @@ VITE_API_URL=
 DATABASE_URL=
 JWT_SECRET=
 
+```
 # 📊 What Makes This Project Strong
 
 - Moves beyond CRUD by focusing on analytics and decision-making  
