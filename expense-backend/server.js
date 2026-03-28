@@ -1,5 +1,9 @@
 require("dotenv").config();
-
+console.log("ENV CHECK:", {
+  DB: process.env.DATABASE_URL ? "OK" : "MISSING",
+  JWT: process.env.JWT_SECRET ? "OK" : "MISSING",
+  GOOGLE: process.env.GOOGLE_CLIENT_ID ? "OK" : "MISSING",
+});
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
