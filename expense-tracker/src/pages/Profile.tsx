@@ -47,14 +47,12 @@ function Profile({ token }: Props) {
       const profileData = await profileRes.json();
       const txnData = await txnRes.json();
 
-      // ✅ FIX 1: correct user extraction
       if (profileRes.ok && profileData.success) {
         setUser(profileData.data);
       } else {
         throw new Error("Failed to load profile");
       }
 
-      // ✅ FIX 2: correct transaction extraction
       if (txnRes.ok && txnData.success && Array.isArray(txnData.data)) {
         const transactions = txnData.data;
 
@@ -83,9 +81,15 @@ function Profile({ token }: Props) {
     }
   };
 
-  const goToDashboard = () => navigate("/dashboard");
+  // ✅ FIXED NAVIGATION
+  const goToDashboard = (type?: "income" | "expense") => {
+    if (type) {
+      navigate(`/dashboard?type=${type}`);
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
-  // 🔥 LOADING
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950">
@@ -94,7 +98,6 @@ function Profile({ token }: Props) {
     );
   }
 
-  // 🔥 ERROR
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-white bg-gray-950">
@@ -119,7 +122,6 @@ function Profile({ token }: Props) {
 
         {/* USER INFO */}
         <div className="mb-6 space-y-4">
-
           <div>
             <p className="text-gray-400 text-sm">Username</p>
             <p className="text-lg text-white font-medium">
@@ -133,14 +135,13 @@ function Profile({ token }: Props) {
               {user?.email}
             </p>
           </div>
-
         </div>
 
         {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
           <div
-            onClick={goToDashboard}
+            onClick={() => goToDashboard()}
             className="bg-gray-800/70 p-5 rounded-xl cursor-pointer hover:bg-gray-700 transition"
           >
             <p className="text-gray-400 text-sm">Total Transactions</p>
@@ -150,7 +151,7 @@ function Profile({ token }: Props) {
           </div>
 
           <div
-            onClick={goToDashboard}
+            onClick={() => goToDashboard("income")}
             className="bg-gray-800/70 p-5 rounded-xl cursor-pointer hover:bg-gray-700 transition"
           >
             <p className="text-gray-400 text-sm">Total Income</p>
@@ -160,7 +161,7 @@ function Profile({ token }: Props) {
           </div>
 
           <div
-            onClick={goToDashboard}
+            onClick={() => goToDashboard("expense")}
             className="bg-gray-800/70 p-5 rounded-xl cursor-pointer hover:bg-gray-700 transition"
           >
             <p className="text-gray-400 text-sm">Total Expenses</p>

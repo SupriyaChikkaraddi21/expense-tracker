@@ -13,6 +13,7 @@ import TrendsCard from "../components/TrendsCard";
 import PredictionCard from "../components/PredictionCard";
 import MonthlyBarChart from "../components/MonthlyBarChart";
 import SummaryInsightCard from "../components/SummaryInsightCard";
+import { useLocation } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -22,6 +23,9 @@ const fadeUp = {
 };
 
 function Dashboard({ token, filterType }: any) {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const type = query.get("type"); // "income" | "expense" | null
   const {
     transactions,
     categories,
@@ -38,7 +42,7 @@ function Dashboard({ token, filterType }: any) {
     setCategoryFilter,
     month,
     setMonth,
-  } = useTransactions(token, filterType);
+  } = useTransactions(token, type);
 
   const [editing, setEditing] = useState<any>(null);
   const [refreshBudget, setRefreshBudget] = useState(false);
@@ -55,6 +59,7 @@ function Dashboard({ token, filterType }: any) {
       addTransaction(data);
     }
   };
+  
 
   const downloadCSV = async () => {
     try {
