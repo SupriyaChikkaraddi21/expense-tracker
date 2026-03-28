@@ -64,7 +64,7 @@ export default function InsightsCard({ token }: Props) {
           Smart Insights
         </h2>
         <span className="text-xs text-gray-500">
-          AI Analysis
+          Smart Analysis
         </span>
       </div>
 

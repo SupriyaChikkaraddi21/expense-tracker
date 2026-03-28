@@ -50,7 +50,7 @@ export default function SummaryInsightCard({ token }: Props) {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🧠</span>
         <h2 className="text-lg font-semibold text-gray-200">
-          AI Spending Summary
+          Smart Spending insights
         </h2>
       </div>
 

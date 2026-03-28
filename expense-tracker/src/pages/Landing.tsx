@@ -77,7 +77,7 @@ export default function Landing() {
           </h1>
 
           <p className="mt-6 text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            AI-powered insights that don’t just track your spending —
+            Smart insights that don’t just track your spending —
             they tell you exactly what to fix.
           </p>
 
@@ -118,7 +118,7 @@ export default function Landing() {
 
           {[
             {
-              title: "AI Insights",
+              title: "Smart Insights",
               desc: "Understand your spending patterns instantly with smart analysis.",
             },
             {
@@ -160,7 +160,7 @@ export default function Landing() {
 
           {[
             { title: "Add", desc: "Track income & expenses" },
-            { title: "Analyze", desc: "AI gives insights instantly" },
+            { title: "Analyze", desc: "Smart insights instantly" },
             { title: "Improve", desc: "Optimize your spending habits" },
           ].map((step, i) => (
             <motion.div key={i} {...fadeUp}>
