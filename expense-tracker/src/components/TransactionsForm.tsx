@@ -115,8 +115,11 @@ export default function TransactionForm({
       </div>
 
       <input
-        placeholder="What did you spend on?"
-        value={text}
+        placeholder={
+          type === "expense"
+          ? "What did you spend on?"
+          : "Where did this income come from?"
+        }
         onChange={(e) => {
           const val = e.target.value;
           setText(val);
