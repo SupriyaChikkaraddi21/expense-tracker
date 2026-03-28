@@ -22,10 +22,10 @@ const fadeUp = {
   animate: { opacity: 1, y: 0 },
 };
 
-function Dashboard({ token, filterType }: any) {
+function Dashboard({ token}: any) {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const type = query.get("type"); // "income" | "expense" | null
+  const type = query.get("type") ??""; // "income" | "expense" | null
   const {
     transactions,
     categories,
