@@ -56,7 +56,6 @@ function Dashboard({ token, filterType }: any) {
     }
   };
 
-  // ✅ FIXED CSV DOWNLOAD
   const downloadCSV = async () => {
     try {
       const res = await fetch(`${BASE_URL}/export-csv`, {
@@ -86,9 +85,9 @@ function Dashboard({ token, filterType }: any) {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white">
-
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
+        {/* HEADER */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl md:text-4xl font-semibold text-gray-100">
@@ -119,8 +118,8 @@ function Dashboard({ token, filterType }: any) {
           <InsightsCard token={token} />
         </motion.div>
 
+        {/* TOP GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
           <motion.div {...fadeUp}>
             <BudgetCard token={token} refresh={refreshBudget} />
           </motion.div>
@@ -136,11 +135,12 @@ function Dashboard({ token, filterType }: any) {
           <motion.div {...fadeUp} className="lg:col-span-2">
             <PredictionCard token={token} />
           </motion.div>
-
         </div>
 
+        {/* MAIN SECTION */}
         <div className="flex flex-col lg:flex-row gap-6">
 
+          {/* LEFT SIDE */}
           <div className="w-full lg:w-[320px] flex flex-col gap-6">
 
             <motion.div
@@ -187,23 +187,29 @@ function Dashboard({ token, filterType }: any) {
 
           </div>
 
+          {/* RIGHT SIDE */}
           <div className="flex-1 flex flex-col gap-6">
 
+            {/* ✅ FIXED TRANSACTIONS */}
             <motion.div
               {...fadeUp}
-              className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-lg transition"
+              className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-lg transition w-full overflow-hidden"
             >
               <h2 className="text-lg font-semibold mb-4 text-gray-200">
                 Transactions
               </h2>
 
-              <TransactionList
-                transactions={transactions}
-                onDelete={deleteTransaction}
-                onEdit={setEditing}
-              />
+              {/* 🔥 SCROLL FIX */}
+              <div className="max-h-[420px] overflow-y-auto pr-2">
+                <TransactionList
+                  transactions={transactions}
+                  onDelete={deleteTransaction}
+                  onEdit={setEditing}
+                />
+              </div>
             </motion.div>
 
+            {/* CHART */}
             <motion.div
               {...fadeUp}
               className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-lg transition"
