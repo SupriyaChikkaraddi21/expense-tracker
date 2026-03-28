@@ -9,6 +9,8 @@ type Props = {
 function AuthForm({ onAuth }: Props) {
   const navigate = useNavigate();
 
+  const BASE_URL = import.meta.env.VITE_API_URL; // ✅ FIXED
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -38,7 +40,7 @@ function AuthForm({ onAuth }: Props) {
 
       const endpoint = isLogin ? "login" : "register";
 
-      const res = await fetch(`http://localhost:5000/${endpoint}`, {
+      const res = await fetch(`${BASE_URL}/${endpoint}`, { // ✅ FIXED
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,9 +59,8 @@ function AuthForm({ onAuth }: Props) {
         return;
       }
 
-      // ✅ CRITICAL LINE
       if (data?.data?.token) {
-        console.log("TOKEN RECEIVED:", data.data.token); // debug
+        console.log("TOKEN RECEIVED:", data.data.token);
         onAuth(data.data.token);
         navigate("/dashboard");
       } else {
@@ -140,7 +141,7 @@ function AuthForm({ onAuth }: Props) {
 
                 setLoading(true);
 
-                const res = await fetch("http://localhost:5000/google-auth", {
+                const res = await fetch(`${BASE_URL}/google-auth`, { // ✅ FIXED
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -158,7 +159,7 @@ function AuthForm({ onAuth }: Props) {
                 }
 
                 if (data?.data?.token) {
-                  console.log("GOOGLE TOKEN:", data.data.token); // debug
+                  console.log("GOOGLE TOKEN:", data.data.token);
                   onAuth(data.data.token);
                   navigate("/dashboard");
                 } else {
