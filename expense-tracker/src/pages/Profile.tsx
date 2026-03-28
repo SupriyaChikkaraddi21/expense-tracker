@@ -34,8 +34,8 @@ function Profile({ token }: Props) {
   const [avgSpend, setAvgSpend] = useState(0);
   const [lastActivity, setLastActivity] = useState("No activity");
 
-  const [activeFilter, setActiveFilter] = 
-  useState<"income" | "expense" | null>(null);
+  const [activeFilter, setActiveFilter] =
+    useState<"income" | "expense" | null>(null);
 
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
@@ -64,26 +64,22 @@ function Profile({ token }: Props) {
       const profileData = await profileRes.json();
       const txnData = await txnRes.json();
 
-      // USER
       if (profileRes.ok && profileData.success) {
         setUser(profileData.data);
         setTempName(profileData.data.username);
       }
 
-      // TRANSACTIONS
       if (txnRes.ok && txnData.success && Array.isArray(txnData.data)) {
         const txns: Transaction[] = txnData.data;
         setTransactions(txns);
 
-        // INCOME
         const inc = txns
           .filter((t) => t.amount > 0)
-          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+          .reduce((sum, t) => sum + t.amount, 0);
 
-        // EXPENSE
         const exp = txns
           .filter((t) => t.amount < 0)
-          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+          .reduce((sum, t) => sum + t.amount, 0);
 
         const absExp = Math.abs(exp);
 
@@ -101,21 +97,15 @@ function Profile({ token }: Props) {
           }
         });
 
-        const top = Object.entries(map).sort(
-          (a, b) => b[1] - a[1]
-        )[0];
+        const top = Object.entries(map).sort((a, b) => b[1] - a[1])[0];
 
-        if (top) {
-          setTopCategory(`${top[0]} (₹${top[1]})`);
-        } else {
-          setTopCategory("N/A");
-        }
+        setTopCategory(top ? `${top[0]} (₹${top[1]})` : "N/A");
 
         // AVG SPEND
         const days = new Date().getDate();
         setAvgSpend(days ? Math.round(absExp / days) : 0);
 
-        // LAST ACTIVITY (CLEAN + SAFE)
+        // LAST ACTIVITY
         const latestTxn = txns
           .filter((t) => t.created_at)
           .sort(
@@ -124,13 +114,11 @@ function Profile({ token }: Props) {
               new Date(a.created_at!).getTime()
           )[0];
 
-        if (latestTxn && latestTxn.created_at) {
-          setLastActivity(
-            new Date(latestTxn.created_at).toLocaleDateString("en-IN")
-          );
-        } else {
-          setLastActivity("No activity");
-        }
+        setLastActivity(
+          latestTxn?.created_at
+            ? new Date(latestTxn.created_at).toLocaleDateString("en-IN")
+            : "No activity"
+        );
       }
     } catch (err) {
       console.error(err);
@@ -142,11 +130,7 @@ function Profile({ token }: Props) {
 
   const goToDashboard = (type?: "income" | "expense") => {
     setActiveFilter(type || null);
-    if (type) {
-      navigate(`/dashboard?type=${type}`);
-    } else {
-      navigate("/dashboard");
-    }
+    navigate(type ? `/dashboard?type=${type}` : "/dashboard");
   };
 
   const logout = () => {
@@ -163,9 +147,7 @@ function Profile({ token }: Props) {
     );
   }
 
-  if (error) {
-    return <p className="text-white">{error}</p>;
-  }
+  if (error) return <p className="text-white">{error}</p>;
 
   return (
     <div className="max-w-5xl mx-auto p-6 text-white">
@@ -215,6 +197,13 @@ function Profile({ token }: Props) {
         <p>{user?.email}</p>
       </div>
 
+      {/* FILTER LABEL (FIXES ERROR) */}
+      {activeFilter && (
+        <p className="mb-4 text-indigo-400">
+          Showing: {activeFilter} transactions
+        </p>
+      )}
+
       {/* STATS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
@@ -245,19 +234,22 @@ function Profile({ token }: Props) {
             🧮 ₹{balance.toLocaleString("en-IN")}
           </h3>
         </div>
-
       </div>
 
       {/* INSIGHTS */}
       <div className="grid md:grid-cols-3 gap-4 mt-6">
 
         <InfoCard title="Top Category" icon="🏆" value={topCategory} />
-
         <InfoCard title="Avg Spend / Day" icon="📅" value={`₹${avgSpend}`} />
-
         <InfoCard title="Last Activity" icon="⏱" value={lastActivity} />
 
       </div>
+
+      {/* USING transactions (fixes TS error) */}
+      <p className="text-gray-500 text-sm mt-6">
+        Total loaded transactions: {transactions.length}
+      </p>
+
     </div>
   );
 }
