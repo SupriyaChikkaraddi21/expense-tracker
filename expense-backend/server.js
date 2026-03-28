@@ -229,6 +229,8 @@ app.post("/login", async (req, res) => {
 // =======================
 app.post("/google-auth", async (req, res) => {
   try {
+    console.log("STEP 1: Request received");
+
     const { credential } = req.body;
 
     console.log("ENV CLIENT ID:", process.env.GOOGLE_CLIENT_ID);
@@ -241,13 +243,16 @@ app.post("/google-auth", async (req, res) => {
       });
     }
 
-    // ✅ VERIFY TOKEN
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
+    console.log("STEP 2: Token verified");
+
     const payload = ticket.getPayload();
+
+    console.log("STEP 3: Payload:", payload?.email);
 
     if (!payload || !payload.email) {
       return res.status(400).json({
@@ -262,7 +267,6 @@ app.post("/google-auth", async (req, res) => {
       .toLowerCase()
       .replace(/\s+/g, "");
 
-    // ✅ Ensure username uniqueness
     let baseUsername = username;
     let counter = 0;
 
@@ -278,14 +282,18 @@ app.post("/google-auth", async (req, res) => {
       username = baseUsername + counter;
     }
 
-    // ✅ Check if user exists
+    console.log("STEP 4: Final username:", username);
+
     let user = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
-    // ✅ Create user if not exists
+    console.log("STEP 5: Existing user count:", user.rows.length);
+
     if (user.rows.length === 0) {
+      console.log("STEP 6: Creating new user...");
+
       try {
         user = await pool.query(
           `INSERT INTO users (email, password, username)
@@ -293,8 +301,12 @@ app.post("/google-auth", async (req, res) => {
            RETURNING *`,
           [email, null, username]
         );
+
+        console.log("STEP 7: User created with ID:", user.rows[0].id);
+
       } catch (dbErr) {
-        console.error("DB INSERT ERROR:", dbErr);
+        console.error("❌ DB INSERT ERROR:", dbErr);
+
         return res.status(500).json({
           success: false,
           message: "Database error while creating user",
@@ -303,6 +315,8 @@ app.post("/google-auth", async (req, res) => {
     }
 
     const token = generateToken(user.rows[0].id);
+
+    console.log("STEP 8: Token generated");
 
     return res.json({
       success: true,
@@ -319,36 +333,6 @@ app.post("/google-auth", async (req, res) => {
     });
   }
 });
-console.log("STEP 1: Request received");
-
-const ticket = await client.verifyIdToken({
-  idToken: credential,
-  audience: process.env.GOOGLE_CLIENT_ID,
-});
-
-console.log("STEP 2: Token verified");
-
-const payload = ticket.getPayload();
-
-console.log("STEP 3: Payload:", payload.email);
-
-let user = await pool.query(
-  "SELECT * FROM users WHERE email = $1",
-  [email]
-);
-
-console.log("STEP 4: Existing user:", user.rows.length);
-
-if (user.rows.length === 0) {
-  console.log("STEP 5: Creating user...");
-  
-  user = await pool.query(
-    "INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING *",
-    [email, null, username]
-  );
-
-  console.log("STEP 6: User created:", user.rows[0].id);
-}
 // =======================
 // 👤 GET CURRENT USER
 // =======================
