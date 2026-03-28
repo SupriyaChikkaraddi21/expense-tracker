@@ -4,6 +4,11 @@ export default function TransactionList({
   onEdit,
 }: any) {
 
+  // ✅ FIX: always ensure it's an array
+  const safeTransactions = Array.isArray(transactions)
+    ? transactions
+    : transactions?.data || [];
+
   const formatINR = (amount: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -11,7 +16,7 @@ export default function TransactionList({
       maximumFractionDigits: 0,
     }).format(amount);
 
-  if (!transactions.length) {
+  if (!safeTransactions.length) {
     return (
       <div className="text-center py-10 text-gray-400">
         <p className="text-lg">No transactions yet</p>
@@ -22,7 +27,7 @@ export default function TransactionList({
 
   return (
     <div className="space-y-3">
-      {transactions.map((t: any) => {
+      {safeTransactions.map((t: any) => {
         const isIncome = t.amount > 0;
 
         return (

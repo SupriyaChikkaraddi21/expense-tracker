@@ -1029,45 +1029,39 @@ app.get("/smart-alerts", auth, async (req, res) => {
   }
 });
 // =======================
-// 📈 SPENDING TRENDS (CLEANED)
+// 📈 SPENDING TRENDS (FIXED & CLEAN)
 // =======================
 app.get("/spending-trends", auth, async (req, res) => {
   try {
-    const now = new Date();
-
-    let currentMonth = now.getMonth() + 1;
-    let lastMonth = currentMonth - 1;
-    let year = now.getFullYear();
-    let lastMonthYear = year;
-
-    // ✅ HANDLE JAN EDGE CASE
-    if (lastMonth === 0) {
-      lastMonth = 12;
-      lastMonthYear = year - 1;
-    }
+    const userId = req.user.id;
 
     const result = await pool.query(
       `
       SELECT 
         TRIM(LOWER(category)) AS category,
-        SUM(CASE 
-              WHEN EXTRACT(MONTH FROM created_at) = $2 
-                   AND EXTRACT(YEAR FROM created_at) = $4
-              THEN ABS(amount)
-              ELSE 0 
-            END) AS current,
-        SUM(CASE 
-              WHEN EXTRACT(MONTH FROM created_at) = $3 
-                   AND EXTRACT(YEAR FROM created_at) = $5
-              THEN ABS(amount)
-              ELSE 0 
-            END) AS previous
+
+        SUM(
+          CASE 
+            WHEN DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
+            THEN ABS(amount)
+            ELSE 0
+          END
+        ) AS current,
+
+        SUM(
+          CASE 
+            WHEN DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
+            THEN ABS(amount)
+            ELSE 0
+          END
+        ) AS previous
+
       FROM transactions
       WHERE user_id = $1
-        AND amount < 0
+        AND amount < 0   -- keep your logic intact
       GROUP BY TRIM(LOWER(category))
       `,
-      [req.user.id, currentMonth, lastMonth, year, lastMonthYear]
+      [userId]
     );
 
     const trends = result.rows.map((item) => {
@@ -1094,19 +1088,18 @@ app.get("/spending-trends", auth, async (req, res) => {
         current,
         previous,
         change: diff,
-        percent: Number(percent.toFixed(1)), // ✅ always number
+        percent: Number(percent.toFixed(1)),
         trend,
       };
     });
 
-    // ✅ FINAL RESPONSE (CONSISTENT)
     res.json({
       success: true,
       data: trends,
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("SPENDING TREND ERROR:", err);
     res.status(500).json({
       success: false,
       message: "Trend fetch failed",
