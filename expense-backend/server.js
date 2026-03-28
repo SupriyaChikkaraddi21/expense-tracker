@@ -319,6 +319,36 @@ app.post("/google-auth", async (req, res) => {
     });
   }
 });
+console.log("STEP 1: Request received");
+
+const ticket = await client.verifyIdToken({
+  idToken: credential,
+  audience: process.env.GOOGLE_CLIENT_ID,
+});
+
+console.log("STEP 2: Token verified");
+
+const payload = ticket.getPayload();
+
+console.log("STEP 3: Payload:", payload.email);
+
+let user = await pool.query(
+  "SELECT * FROM users WHERE email = $1",
+  [email]
+);
+
+console.log("STEP 4: Existing user:", user.rows.length);
+
+if (user.rows.length === 0) {
+  console.log("STEP 5: Creating user...");
+  
+  user = await pool.query(
+    "INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING *",
+    [email, null, username]
+  );
+
+  console.log("STEP 6: User created:", user.rows[0].id);
+}
 // =======================
 // 👤 GET CURRENT USER
 // =======================
