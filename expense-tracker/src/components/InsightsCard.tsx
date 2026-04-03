@@ -9,9 +9,10 @@ type Insight = {
 
 type Props = {
   token: string;
+  month: number; // ✅ added
 };
 
-export default function InsightsCard({ token }: Props) {
+export default function InsightsCard({ token, month }: Props) {
   const [data, setData] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,9 +21,12 @@ export default function InsightsCard({ token }: Props) {
 
     const fetchInsights = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/insights`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${BASE_URL}/insights?month=${month}`, // ✅ added
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const resData = await res.json();
 
@@ -40,7 +44,7 @@ export default function InsightsCard({ token }: Props) {
     };
 
     fetchInsights();
-  }, [token]);
+  }, [token, month]); // ✅ added month dependency
 
   const styles = {
     danger: "bg-red-500/10 border-red-500/20 text-red-400",
@@ -64,7 +68,7 @@ export default function InsightsCard({ token }: Props) {
           Smart Insights
         </h2>
         <span className="text-xs text-gray-500">
-          Smart Analysis
+          {`Month: ${month + 1}`} {/* ✅ small UX upgrade */}
         </span>
       </div>
 
@@ -78,7 +82,7 @@ export default function InsightsCard({ token }: Props) {
 
       {!loading && data.length === 0 && (
         <p className="text-gray-500 text-sm">
-          No insights yet. Add transactions to unlock analysis.
+          No insights for this month.
         </p>
       )}
 

@@ -25,31 +25,18 @@ max: 100,
 // ✅ MIDDLEWARE
 app.set("trust proxy", 1);
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "https://expense-tracker-five-wheat-97.vercel.app",
-  "https://expense-tracker-inf9250-supriyachikkaraddi21s-projects.vercel.app"
-];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps, curl, etc.)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("❌ Blocked by CORS:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "https://expense-tracker-five-wheat-97.vercel.app"
+    ],
     credentials: true,
   })
 );
 
-app.use(express.json());
 app.use(express.json());
 
 // ✅ GOOGLE CLIENT
@@ -568,12 +555,20 @@ app.get("/categories", auth, async (req, res) => {
 app.get("/insights", auth, async (req, res) => {
   try {
     const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-    const year = now.getFullYear();
-    const today = now.getDate();
-    const totalDays = new Date(year, currentMonth, 0).getDate();
 
+// ✅ get month from frontend OR fallback to current
+    const currentMonth = parseInt(req.query.month) || (now.getMonth() + 1);
+
+    const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+
+    const year = now.getFullYear();
+
+// ⚠️ IMPORTANT: today should only apply if current month
+    const today =
+      currentMonth === now.getMonth() + 1 ? now.getDate() : 30;
+
+// total days in selected month
+    const totalDays = new Date(year, currentMonth, 0).getDate();
     // 🔹 1. Budget + Spending
     const budgetData = await pool.query(
       `

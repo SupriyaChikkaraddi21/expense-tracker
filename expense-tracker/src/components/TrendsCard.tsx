@@ -46,11 +46,19 @@ export default function TrendsCard({ token }: Props) {
     fetchTrends();
   }, [token]);
 
+  // ✅ FIXED LOGIC (ONLY THIS PART CHANGED PROPERLY)
   const getLabel = (item: Trend) => {
+    // 🆕 New category spending
     if (item.trend === "new") {
-      return <span className="text-yellow-400">🆕 New</span>;
+      return <span className="text-blue-400">🆕 New spending</span>;
     }
 
+    // ❗ No spending this month (critical fix)
+    if (item.current === 0 && item.previous > 0) {
+      return <span className="text-gray-400">No spending</span>;
+    }
+
+    // 🔺 Increased spending
     if (item.trend === "up") {
       return (
         <span className="text-red-400">
@@ -59,6 +67,7 @@ export default function TrendsCard({ token }: Props) {
       );
     }
 
+    // 🔻 Decreased spending
     if (item.trend === "down") {
       return (
         <span className="text-green-400">
@@ -67,13 +76,14 @@ export default function TrendsCard({ token }: Props) {
       );
     }
 
+    // ⚪ No change
     return <span className="text-gray-400">No change</span>;
   };
 
   return (
     <div className="bg-[#111827] p-6 rounded-2xl border border-gray-800">
       <h2 className="text-lg font-semibold mb-4 text-gray-300">
-        Monthly Trends
+        Monthly Trends ( This Month)
       </h2>
 
       {loading && (

@@ -22,10 +22,11 @@ const fadeUp = {
   animate: { opacity: 1, y: 0 },
 };
 
-function Dashboard({ token}: any) {
+function Dashboard({ token }: any) {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const type = query.get("type") ??""; // "income" | "expense" | null
+  const type = query.get("type") ?? "";
+
   const {
     transactions,
     categories,
@@ -45,6 +46,12 @@ function Dashboard({ token}: any) {
   } = useTransactions(token, type);
 
   const [editing, setEditing] = useState<any>(null);
+
+  // ✅ NEW (safe - separate from existing month)
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().getMonth()
+  );
+
   const [refreshBudget, setRefreshBudget] = useState(false);
 
   const handleBudgetAdded = () => {
@@ -59,7 +66,6 @@ function Dashboard({ token}: any) {
       addTransaction(data);
     }
   };
-  
 
   const downloadCSV = async () => {
     try {
@@ -93,7 +99,7 @@ function Dashboard({ token}: any) {
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-semibold text-gray-100">
               💰 Expense Tracker
@@ -103,24 +109,45 @@ function Dashboard({ token}: any) {
             </p>
           </div>
 
-          <button
-            onClick={downloadCSV}
-            className="bg-indigo-600 hover:bg-indigo-500 transition px-4 py-2 rounded-xl text-sm font-medium"
-          >
-            ⬇ Export CSV
-          </button>
+          <div className="flex items-center gap-3">
+            {/* ✅ MONTH SELECTOR (NEW) */}
+            <select
+              value={selectedMonth}
+              onChange={(e) =>
+                setSelectedMonth(Number(e.target.value))
+              }
+              className="bg-gray-800 text-white px-3 py-2 rounded-lg text-sm"
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i} value={i}>
+                  {new Date(0, i).toLocaleString("default", {
+                    month: "short",
+                  })}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={downloadCSV}
+              className="bg-indigo-600 hover:bg-indigo-500 transition px-4 py-2 rounded-xl text-sm font-medium"
+            >
+              ⬇ Export CSV
+            </button>
+          </div>
         </div>
 
         <motion.div {...fadeUp}>
           <SummaryCards transactions={transactions} />
         </motion.div>
 
+        {/* ✅ UPDATED */}
         <motion.div {...fadeUp}>
-          <SummaryInsightCard token={token} />
+          <SummaryInsightCard token={token} month={selectedMonth} />
         </motion.div>
 
+        {/* ✅ UPDATED */}
         <motion.div {...fadeUp}>
-          <InsightsCard token={token} />
+          <InsightsCard token={token} month={selectedMonth} />
         </motion.div>
 
         {/* TOP GRID */}
@@ -145,7 +172,7 @@ function Dashboard({ token}: any) {
         {/* MAIN SECTION */}
         <div className="flex flex-col lg:flex-row gap-6">
 
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <div className="w-full lg:w-[320px] flex flex-col gap-6">
 
             <motion.div
@@ -192,10 +219,9 @@ function Dashboard({ token}: any) {
 
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT */}
           <div className="flex-1 flex flex-col gap-6">
 
-            {/* ✅ FIXED TRANSACTIONS */}
             <motion.div
               {...fadeUp}
               className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-lg transition w-full overflow-hidden"
@@ -204,7 +230,6 @@ function Dashboard({ token}: any) {
                 Transactions
               </h2>
 
-              {/* 🔥 SCROLL FIX */}
               <div className="max-h-[420px] overflow-y-auto pr-2">
                 <TransactionList
                   transactions={transactions}
@@ -214,7 +239,6 @@ function Dashboard({ token}: any) {
               </div>
             </motion.div>
 
-            {/* CHART */}
             <motion.div
               {...fadeUp}
               className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-lg transition"

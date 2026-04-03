@@ -9,9 +9,10 @@ type SummaryData = {
 
 type Props = {
   token: string;
+  month: number; // ✅ NEW
 };
 
-export default function SummaryInsightCard({ token }: Props) {
+export default function SummaryInsightCard({ token, month }: Props) {
   const [data, setData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,11 +21,14 @@ export default function SummaryInsightCard({ token }: Props) {
 
     const fetchSummary = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/summary`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `${BASE_URL}/summary?month=${month}`, // ✅ UPDATED
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const resData = await res.json();
 
@@ -42,7 +46,7 @@ export default function SummaryInsightCard({ token }: Props) {
     };
 
     fetchSummary();
-  }, [token]);
+  }, [token, month]); // ✅ IMPORTANT
 
   return (
     <div className="bg-gradient-to-br from-[#0B1220] to-[#020617] border border-white/5 rounded-2xl p-6 shadow-md">
@@ -50,7 +54,9 @@ export default function SummaryInsightCard({ token }: Props) {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🧠</span>
         <h2 className="text-lg font-semibold text-gray-200">
-          Smart Spending insights
+          Smart Spending Insights(this month) (
+          {new Date(0, month).toLocaleString("default", { month: "long" })}
+          )
         </h2>
       </div>
 
